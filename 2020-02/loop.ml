@@ -1,7 +1,4 @@
-(*
- * Program used for Jane Street Puzzle - 2020-02
- * willemhoek.com
- *)
+(* Ocaml program - Jane Street puzzle, Feb 2020 *)
 
 open Format
 
@@ -12,15 +9,7 @@ let hit x y =
   (y > 1. && y <  2. && x > 0. && x < 1.)
 
 let pol2cart length sigma = 
-  (length *. cos sigma, length *.    sin sigma)
-
-let print_header = 
-  print_endline "\nlength\t\tprobability\thit\tcount\tx\ty\ts";
-  print_endline "------\t\t-----------\t---\t-----\t-\t-\t-"
-
-let print_stats hit_count total_count length xn yn sn = 
-  printf "%f\t%f" length  (float_of_int hit_count /. float_of_int total_count);
-  printf "\t%d\t%d\t%d\t%d\t%d\t\n"  hit_count total_count xn yn sn
+  (length *. cos sigma, length *. sin sigma)
 
 let calculate xn yn sn length = 
   let pi2 = 2. *. 3.1415926535897931 in
@@ -42,12 +31,19 @@ let calculate xn yn sn length =
   done;
   print_stats !hit_count !total_count length xn yn sn
 
+let print_header () = 
+  printf "\nlength\t\tprobability\thit\tcount\tx\ty\ts\n%!";
+  printf "------\t\t-----------\t---\t-----\t-\t-\t-\n%!"
+
+let print_stats hit_count total_count length xn yn sn = 
+  printf "%f\t%f" length  (float_of_int hit_count /. float_of_int total_count);
+  printf "\t%d\t%d\t%d\t%d\t%d\t\n%!"  hit_count total_count xn yn sn
+
 let () = 
   let length = ref 0.0 in
-  let incr = 0.1 in
-  print_header;
-  while !length < 1.2 do     
+  let incr = 0.05 in
+  print_header ();
+  while !length < 2.5 do     
     calculate 200 200 200 !length;
     length := !length +. incr;
   done
-
