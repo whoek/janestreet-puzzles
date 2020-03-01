@@ -8,6 +8,14 @@ let hit x y =
   (y < 0. && y > -1. && x > 0. && x < 1.) ||
   (y > 1. && y <  2. && x > 0. && x < 1.)
 
+let print_header () = 
+  printf "\nlength\t\tprobability\thit\tcount\tx\ty\ts\n%!";
+  printf "------\t\t-----------\t---\t-----\t-\t-\t-\n%!"
+
+let print_stats hit_count total_count length xn yn sn = 
+  printf "%f\t%f" length  (float_of_int hit_count /. float_of_int total_count);
+  printf "\t%d\t%d\t%d\t%d\t%d\t\n%!"  hit_count total_count xn yn sn
+
 let pol2cart length sigma = 
   (length *. cos sigma, length *. sin sigma)
 
@@ -30,14 +38,6 @@ let calculate xn yn sn length =
     done;
   done;
   print_stats !hit_count !total_count length xn yn sn
-
-let print_header () = 
-  printf "\nlength\t\tprobability\thit\tcount\tx\ty\ts\n%!";
-  printf "------\t\t-----------\t---\t-----\t-\t-\t-\n%!"
-
-let print_stats hit_count total_count length xn yn sn = 
-  printf "%f\t%f" length  (float_of_int hit_count /. float_of_int total_count);
-  printf "\t%d\t%d\t%d\t%d\t%d\t\n%!"  hit_count total_count xn yn sn
 
 let () = 
   let length = ref 0.0 in
