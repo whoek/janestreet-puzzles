@@ -23,14 +23,17 @@ def ring(r, aoff, lines):
 
 def main():
     r = 100
+    k = 0.386106105
+    draw_hex = True
     draw.ellipse((offset - (3*r), offset -(3*r), offset +(3*r), offset +(3*r)), outline=(0, 0, 0), width=3)
     ring(r, 0, False)   # r, angle_offset, radial 0 or 1
-    ring(r* 0.386106105**1, math.pi/6, False)
-    ring(r* 0.386106105**2, 0, False)
-    ring(r* 0.386106105**3, math.pi/6, False)
-    ring(r* 0.386106105**4, 0, False)
-    ring(r* 0.386106105**5, math.pi/6, False)
-    ring(r* 0.386106105**6, 0, False)
+    ring(r* k**1, math.pi/6, draw_hex)
+    if not draw_hex:
+        ring(r* k**2, 0, draw_hex)
+        ring(r* k**3, math.pi/6, draw_hex)
+        ring(r* k**4, 0, draw_hex)
+        ring(r* k**5, math.pi/6, draw_hex)
+        ring(r* k**6, 0, draw_hex)
     im.save('janestreet_june_2020.jpg', quality=95)
     return 1
 
