@@ -6,6 +6,11 @@
 import math
 from datetime import datetime
 
+SIDE_INC = 200
+RAD_STEP = 300
+TOTAL = SIDE_INC * SIDE_INC * RAD_STEP 
+PI2 = 2 * 3.1415926535897931
+
 def hit(x, y):
     return (x < 0 and x > -1 and y > 0 and y < 1) or \
            (x > 1 and x <  2 and y > 0 and y < 1) or \
@@ -42,10 +47,6 @@ def main():
 
 # --------------------------------
 
-SIDE_INC = 200
-RAD_STEP = 300
-TOTAL = SIDE_INC * SIDE_INC * RAD_STEP 
-PI2 = 2 * 3.1415926535897931
 start = datetime.now()
 main ()
 print(datetime.now() - start)
