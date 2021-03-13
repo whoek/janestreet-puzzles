@@ -67,7 +67,6 @@ let rec remove_val v = function
   | [] -> []
   | h :: t -> if h = v then t else h :: remove_val v t
 
-
 (**** END of HELPER functions ***************************************)
 
 let cell2xy cell =
@@ -81,7 +80,7 @@ let prefix_zeros x = right_str ("00000000" ^ x) 8
 let () = assert ("00001111" = prefix_zeros "1111")
 
 let make_list first last  =  (* n = size of the grid *)
-  let base4 x =  frombase10 (x + first) 4 |> prefix_zeros in
+  let base4 x =  prefix_zeros @@ frombase10 (x + first) 4 in
   List.init (last - first) base4
 
 let fill_hook grid num (x, y) =
@@ -123,11 +122,11 @@ let full_grid str =
   in add_hook str
 
 let check54 grid =
-  grid.(4).(2) = 5
-  && grid.(4).(6) = 4
-  && grid.(4).(0) + grid.(4).(1) = 15
+  grid.(4).(0) + grid.(4).(1) = 15
   && grid.(4).(7) + grid.(4).(8) = 15
   && grid.(7).(2) + grid.(8).(2) = 15
+  && grid.(4).(2) = 5
+  && grid.(4).(6) = 4
 
 (* All entries for every hook *)
 let bin = [|[];[1];[2;2;0];[3;3;3;0;0];[4;4;4;4;0;0;0];[5;5;5;5;5;0;0;0;0];
@@ -141,12 +140,12 @@ let[@inlne]  get_population grid full_grid n =
     for y = 0 to 8 do
       if full_grid.(x).(y) = n && grid.(x).(y) <> None
       then begin
-          let to_remove = grid.(x).(y) |> option_to_int in 
+          let to_remove = option_to_int @@ grid.(x).(y) in 
           p :=  remove_val to_remove !p
         end
     done
   done;
-  !p |> destutter    (* to remove duplucates *)
+  destutter @@ !p   (* to remove duplucates *)
 
 (* TEST *)
 let () =
@@ -178,7 +177,7 @@ let is_connected some_grid =
     if x < 8 && option_to_int @@ some_grid.(x+1).(y) <> 0 &&   (* E *)
          mark.(x+1).(y) then flood (x+1) y;
   in
-  let () = flood 4 2 in      (* starting point - known number *)
+  let () = flood 4 2 in      (* starting point - known number in grid *)
   !count = 45                (* 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 *)
 
 let check_region region option_grid =
@@ -245,20 +244,23 @@ let rec solve some_grid full_grid cell =
 
 let main () = begin
     let hook_list = make_list 0 (power 4 8) in      (*65_536 *)
-    let valid_list = List.filter (fun x -> full_grid x |> check54) hook_list in
+    let valid_list = List.filter (fun x -> check54 @@ full_grid x) hook_list in
     Printf.printf "First position: %S\n" (List.hd hook_list);
     Printf.printf "Last position:  %S\n" (list_last hook_list);
     Printf.printf "Total positions: %i\n" (List.length hook_list);
     Printf.printf "Valid positions: %i\n" (List.length valid_list);
-    for n = 0 to (List.length valid_list - 1) do
-      let full_board = full_grid @@ List.nth valid_list n in 
+    let solve_grid valid_list' =
       let empty_grid =  (Array.make_matrix 9 9 None) in
       empty_grid.(4).(2) <- Some 5; 
       empty_grid.(4).(6) <- Some 4;
+      let full_board = full_grid @@ valid_list'  in 
       let _ = solve empty_grid full_board 0 in
       Printf.printf ".%!";
-    done;
+    in
+    List.iter solve_grid valid_list;
     print_endline "\nAll done!"
   end;;
 
 main ()
+
+
