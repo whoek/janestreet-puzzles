@@ -90,7 +90,9 @@ let fill_hook grid num (x, y) =
   done;
   grid
 
-let full_grid str =
+
+(* string -> int array array *)
+let place_hooks str =
   let grid = ref (Array.make_matrix 9 9 1) in  (* x y  default_value *)
   let y_bottom = ref 0 in
   let y_top = ref 8 in
@@ -243,21 +245,21 @@ let rec solve some_grid full_grid cell =
     List.exists check population
 
 let main () = begin
-    let hook_list = make_list 0 (power 4 8) in      (*65_536 *)
-    let valid_list = List.filter (fun x -> check54 @@ full_grid x) hook_list in
-    Printf.printf "First position: %S\n" (List.hd hook_list);
-    Printf.printf "Last position:  %S\n" (list_last hook_list);
-    Printf.printf "Total positions: %i\n" (List.length hook_list);
-    Printf.printf "Valid positions: %i\n" (List.length valid_list);
-    let solve_grid valid_list' =
+    let all_hooks = make_list 0 (power 4 8) in      (*65_536 *)
+    let valid_hooks = List.filter (fun x -> check54 @@ place_hooks x) all_hooks in
+    Printf.printf "First position: %S\n" (List.hd all_hooks);
+    Printf.printf "Last position:  %S\n" (list_last all_hooks);
+    Printf.printf "Total positions: %i\n" (List.length all_hooks);
+    Printf.printf "Valid positions: %i\n" (List.length valid_hooks);
+    let solve_grid hooks =
       let empty_grid =  (Array.make_matrix 9 9 None) in
       empty_grid.(4).(2) <- Some 5; 
       empty_grid.(4).(6) <- Some 4;
-      let full_board = full_grid @@ valid_list'  in 
-      let _ = solve empty_grid full_board 0 in
+      let full_grid = place_hooks hooks in 
+      let _ = solve empty_grid full_grid 0 in
       Printf.printf ".%!";
     in
-    List.iter solve_grid valid_list;
+    List.iter solve_grid valid_hooks;
     print_endline "\nAll done!"
   end;;
 
