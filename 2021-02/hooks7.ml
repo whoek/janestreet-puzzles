@@ -1,7 +1,7 @@
 (*
  *  Jane Street Puzzle - Feb 2021    
  *  Willem Hoek <willem@matimba.com> 
- *  Blog Post:  https://whoek.com/b/howto-solve-jane-street-puzzle-feb-2021-hooks7 
+ *  Blog Post:  https://whoek.com/b/janestreet-puzzle-feb-2021-solved-ocaml-to-the-rescue 
  *)
 
 (**** START of HELPER functions *************************************)
@@ -123,10 +123,11 @@ let full_grid str =
   in add_hook str
 
 let check54 grid =
-  grid.(4).(2) = 5 && grid.(4).(6) = 4 &&
-    grid.(4).(0) + grid.(4).(1) = 15 &&
-      grid.(4).(7) + grid.(4).(8) = 15 &&
-        grid.(7).(2) + grid.(8).(2) = 15
+  grid.(4).(2) = 5
+  && grid.(4).(6) = 4
+  && grid.(4).(0) + grid.(4).(1) = 15
+  && grid.(4).(7) + grid.(4).(8) = 15
+  && grid.(7).(2) + grid.(8).(2) = 15
 
 (* All entries for every hook *)
 let bin = [|[];[1];[2;2;0];[3;3;3;0;0];[4;4;4;4;0;0;0];[5;5;5;5;5;0;0;0;0];
@@ -163,7 +164,6 @@ let () =
   assert ([4; 0] = get_population grid full_grid 4)
 
 let is_connected some_grid =
-  let (x, y) = (4, 2) in   (* known number *)
   let mark = Array.make_matrix 9 9 true in
   let count = ref 0 in
   let rec flood x y = 
@@ -178,14 +178,13 @@ let is_connected some_grid =
     if x < 8 && option_to_int @@ some_grid.(x+1).(y) <> 0 &&   (* E *)
          mark.(x+1).(y) then flood (x+1) y;
   in
-  let () = flood x y in
-  !count = 45                  (* 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 *)
+  let () = flood 4 2 in      (* starting point - known number *)
+  !count = 45                (* 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 *)
 
 let check_region region option_grid =
   let cval cell =
     let x,y = cell2xy cell in
-    let value = option_to_int option_grid.(x).(y) in
-    value
+    option_to_int option_grid.(x).(y)
   in
   match region with
   | 10 -> 15 = cval 0 + cval 1 + cval 9 + cval 10
@@ -233,14 +232,16 @@ let rec solve some_grid full_grid cell =
     end
   else if some_grid.(x).(y) <> None then solve some_grid full_grid (cell + 1)
   else
-    let n = full_grid.(x).(y) in
-    let pop = get_population some_grid full_grid n in
-    let check v =
-      some_grid.(x).(y) <- Some v;
-      (is_valid some_grid cell x y && solve some_grid full_grid (cell + 1)) ||
-        (some_grid.(x).(y) <- None; false)
+    let hook_num = full_grid.(x).(y) in
+    let population = get_population some_grid full_grid hook_num in
+    let check p =
+      some_grid.(x).(y) <- Some p;
+      (* IF valid_value THEN solve next_cell ELSE undo_value *)
+      (is_valid some_grid cell x y
+       && solve some_grid full_grid (cell + 1))
+      || (some_grid.(x).(y) <- None; false)
     in
-    List.exists (fun z -> check z) pop
+    List.exists check population
 
 let main () = begin
     let hook_list = make_list 0 (power 4 8) in      (*65_536 *)
@@ -261,4 +262,3 @@ let main () = begin
   end;;
 
 main ()
-
