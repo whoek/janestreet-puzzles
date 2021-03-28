@@ -42,11 +42,13 @@ let int_of_matrix matrix =
   done;
   m
 
+(* get last element in a list *)
 let rec list_last = function
   | [] -> failwith "List is empty"
   | [x] -> x
   | hd :: tl -> list_last tl
 
+(* math power function  *)
 let rec power x y =
   if(y <= 1 ) then x else x * power x (y-1)
 
@@ -69,6 +71,8 @@ let rec remove_val v = function
 
 (**** END of HELPER functions ***************************************)
 
+
+(* convert from cell number to x y coordinate of 9x9 grid *)
 let cell2xy cell =
   let y = cell / 9 in
   let x = cell mod 9 in
@@ -76,13 +80,15 @@ let cell2xy cell =
 
 let prefix_zeros x = right_str ("00000000" ^ x) 8
 
-(* TEST *)
+(* TEST prefix_zeros *)
 let () = assert ("00001111" = prefix_zeros "1111")
 
+(* create list of all the possible hook alignments *)
 let make_list first last  =  (* n = size of the grid *)
   let base4 x =  prefix_zeros @@ frombase10 (x + first) 4 in
   List.init (last - first) base4
 
+(* add one hook to grid where corner is at coordinate provided *)
 let fill_hook grid num (x, y) =
   for i = 0 to 8 do
     if grid.(i).(y) = 1 then grid.(i).(y) <- num;
@@ -90,8 +96,8 @@ let fill_hook grid num (x, y) =
   done;
   grid
 
-
-(* string -> int array array *)
+(* create grid with all the hooks filled in *)
+(* string -> int array array                *)
 let place_hooks str =
   let grid = ref (Array.make_matrix 9 9 1) in  (* x y  default_value *)
   let y_bottom = ref 0 in
@@ -123,6 +129,7 @@ let place_hooks str =
       end
   in add_hook str
 
+(* basic checks being done to get a subset of grids *)
 let check54 grid =
   grid.(4).(0) + grid.(4).(1) = 15
   && grid.(4).(7) + grid.(4).(8) = 15
@@ -130,12 +137,12 @@ let check54 grid =
   && grid.(4).(2) = 5
   && grid.(4).(6) = 4
 
-(* All entries for every hook *)
+(* All possible entries for full grid  *)
 let bin = [|[];[1];[2;2;0];[3;3;3;0;0];[4;4;4;4;0;0;0];[5;5;5;5;5;0;0;0;0];
             [6;6;6;6;6;6;0;0;0;0;0];[7;7;7;7;7;7;7;0;0;0;0;0;0];
             [8;8;8;8;8;8;8;8;0;0;0;0;0;0;0];[9;9;9;9;9;9;9;9;9;0;0;0;0;0;0;0;0]|]
 
-(* get list of possible entries left to place in a hook *)
+(* get list of possible remaining values to place in a hook *)
 let[@inlne]  get_population grid full_grid n =
   let p = ref bin.(n)  in
   for x = 0 to 8 do
@@ -149,7 +156,7 @@ let[@inlne]  get_population grid full_grid n =
   done;
   destutter @@ !p   (* to remove duplucates *)
 
-(* TEST *)
+(* TEST get_population *)
 let () =
   let grid = Array.make_matrix 9 9 (Some 9) in
   let full_grid = Array.make_matrix 9 9 1 in
@@ -164,6 +171,7 @@ let () =
   assert ([3] = get_population grid full_grid 3);
   assert ([4; 0] = get_population grid full_grid 4)
 
+(* test that the final solution consists of connected values *)
 let is_connected some_grid =
   let mark = Array.make_matrix 9 9 true in
   let count = ref 0 in
@@ -180,8 +188,9 @@ let is_connected some_grid =
          mark.(x+1).(y) then flood (x+1) y;
   in
   let () = flood 4 2 in      (* starting point - known number in grid *)
-  !count = 45                (* 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 *)
+  !count = 45                (* 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9     *)
 
+(* sum of every region must add up to 15 *)
 let check_region region option_grid =
   let cval cell =
     let x,y = cell2xy cell in
@@ -210,6 +219,7 @@ let check_region region option_grid =
   | 80 -> 15 = cval 69 + cval 70 + cval 79 + cval 80 
   | _ -> true
 
+(* every 2x2 region must have at least one empty cell *)
 let is_valid option_grid cell x y  =
   check_region cell option_grid
   && (y = 0 || x = 0
@@ -218,10 +228,10 @@ let is_valid option_grid cell x y  =
       || option_grid.(x-1).(y) = Some 0
       || option_grid.(x-1).(y-1) = Some 0)
 
-(* recursive backtracking  *)
+(* recursive backtracking - cell 0 to 80 *)
 let rec solve some_grid full_grid cell =
   let (x, y) = cell2xy cell in
-  if cell = 81 then begin
+  if cell > 80 then begin
       if is_connected some_grid then begin
           print_endline "\nFound a solution!!!!";
           some_grid
@@ -237,10 +247,13 @@ let rec solve some_grid full_grid cell =
     let population = get_population some_grid full_grid hook_num in
     let check p =
       some_grid.(x).(y) <- Some p;
-      (* IF valid_value THEN solve next_cell ELSE undo_value *)
-      (is_valid some_grid cell x y
-       && solve some_grid full_grid (cell + 1))
-      || (some_grid.(x).(y) <- None; false)
+      if is_valid some_grid cell x y &&
+           solve some_grid full_grid (cell + 1) 
+      then true
+      else (
+        some_grid.(x).(y) <- None;
+        false
+      )
     in
     List.exists check population
 
@@ -264,5 +277,3 @@ let main () = begin
   end;;
 
 main ()
-
-
